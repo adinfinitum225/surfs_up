@@ -10,7 +10,7 @@ from sqlalchemy import create_engine, func
 from flask import Flask, jsonify
 
 # Create engine to connect to database
-engine = create_engine('sqlite:///hawaii.sqlite')
+engine = create_engine('sqlite:///hawaii.sqlite?check_same_thread=False')
 Base = automap_base()
 
 Base.prepare(engine, reflect=True)
@@ -40,4 +40,15 @@ def welcome():
 @app.route('/api/v1.0/precipitation')
 
 def precipitation():
-    return
+    prev_year = dt.date(2017, 8, 23) - dt.timedelta(days=365)
+    precipitation = session.query(Measurement.date, Measurement.prcp).\
+        filter(Measurement.date >= prev_year).all()
+    precip = {date: prcp for date, prcp in precipitation}
+    return jsonify(precip)
+
+@app.route('/api/v1.0/stations')
+
+def stations():
+    results = session.query(Station.station).all()
+    stations = list(np.ravel(results))
+    return jsonify(stations=stations)
